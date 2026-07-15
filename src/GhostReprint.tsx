@@ -8,18 +8,12 @@ import {
 } from "react";
 
 const TOOLS = [
-  { id: "draft", label: "Draft" },
-  { id: "align", label: "Align" },
-  { id: "export", label: "Export" },
+  { id: "draft", label: "Draft", copy: "Compose." },
+  { id: "align", label: "Align", copy: "Register." },
+  { id: "export", label: "Export", copy: "Press." },
 ] as const;
 
 type ToolId = (typeof TOOLS)[number]["id"];
-
-type GhostStamp = {
-  id: number;
-  toolId: ToolId;
-  label: string;
-};
 
 export type GhostReprintProps = {
   className?: string;
@@ -35,12 +29,11 @@ export function GhostReprint({
 }: GhostReprintProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const bedRef = useRef<HTMLDivElement>(null);
+  const liveRef = useRef<HTMLDivElement>(null);
+  const ghostsRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const reduced = useRef(false);
-  const nextGhostId = useRef(0);
   const [active, setActive] = useState<ToolId>("draft");
-  const [pressing, setPressing] = useState(false);
-  const [ghosts, setGhosts] = useState<GhostStamp[]>([]);
 
   const tool = TOOLS.find((t) => t.id === active) ?? TOOLS[0];
 
@@ -52,33 +45,34 @@ export function GhostReprint({
     if (visible) cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }, []);
 
-  const printGhost = useCallback((toolId: ToolId, label: string) => {
-    if (reduced.current) return;
+  const printGhost = useCallback(() => {
+    const live = liveRef.current;
+    const ghosts = ghostsRef.current;
+    if (!live || !ghosts || reduced.current) return;
 
-    const ghostId = ++nextGhostId.current;
-    setGhosts((current) => [...current.slice(-4), { id: ghostId, toolId, label }]);
-    window.setTimeout(() => {
-      setGhosts((current) => current.filter((ghost) => ghost.id !== ghostId));
-    }, 2800);
+    const stamp = live.cloneNode(true) as HTMLElement;
+    stamp.setAttribute("aria-hidden", "true");
+    stamp.querySelectorAll("button").forEach((btn) => {
+      btn.setAttribute("tabindex", "-1");
+      btn.setAttribute("disabled", "true");
+    });
+    ghosts.appendChild(stamp);
+    window.setTimeout(() => stamp.remove(), 2500);
   }, []);
 
   const pick = useCallback(
     (id: ToolId, withPrint = true) => {
-      const label = TOOLS.find((t) => t.id === id)?.label ?? id;
       setActive(id);
-
-      if (!withPrint) return;
-
-      setPressing(true);
-      window.setTimeout(() => setPressing(false), 220);
-      requestAnimationFrame(() => printGhost(id, label));
+      if (withPrint) {
+        requestAnimationFrame(() => printGhost());
+      }
     },
     [printGhost],
   );
 
   const clearGhosts = useCallback(() => {
-    setGhosts([]);
-    setPressing(false);
+    const ghosts = ghostsRef.current;
+    if (ghosts) ghosts.replaceChildren();
     setCursor(false);
   }, [setCursor]);
 
@@ -102,7 +96,9 @@ export function GhostReprint({
 
     const moveCursorToTool = async (id: ToolId) => {
       const bed = bedRef.current;
-      const btn = bed?.querySelector<HTMLElement>(`[data-tool="${id}"]`);
+      const btn = liveRef.current?.querySelector<HTMLElement>(
+        `[data-tool="${id}"]`,
+      );
       if (!bed || !btn) return;
       const bedBox = bed.getBoundingClientRect();
       const btnBox = btn.getBoundingClientRect();
@@ -124,11 +120,11 @@ export function GhostReprint({
           await moveCursorToTool(t.id);
           if (cancelled) break;
           pick(t.id, true);
-          await wait(Math.max(760, autoPlayDuration / 3.1));
+          await wait(Math.max(700, autoPlayDuration / 3.1));
         }
 
         setCursor(false);
-        await wait(900);
+        await wait(1000);
       }
     };
 
@@ -149,33 +145,9 @@ export function GhostReprint({
       data-autoplay={autoPlay ? "true" : "false"}
     >
       <div ref={bedRef} className="gr-bed">
-        <div className="gr-ghosts" aria-hidden="true">
-          {ghosts.map((ghost) => (
-            <div
-              key={ghost.id}
-              className="gr-stamp"
-              data-tool={ghost.toolId}
-            >
-              <span className="gr-stamp-layer gr-stamp-c">{ghost.label}</span>
-              <span className="gr-stamp-layer gr-stamp-m">{ghost.label}</span>
-              <span className="gr-stamp-layer gr-stamp-k">{ghost.label}</span>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className="gr-plate"
-          data-press={pressing ? "true" : "false"}
-        >
-          <span className="gr-reg gr-reg-tl" aria-hidden="true" />
-          <span className="gr-reg gr-reg-tr" aria-hidden="true" />
-          <span className="gr-reg gr-reg-bl" aria-hidden="true" />
-          <span className="gr-reg gr-reg-br" aria-hidden="true" />
-
-          <p className="gr-imprint" aria-live="polite">
-            {tool.label}
-          </p>
-
+        <div ref={ghostsRef} className="gr-ghosts" aria-hidden="true" />
+        <div ref={liveRef} className="gr-live">
+          <p className="gr-copy">{tool.copy}</p>
           <div className="gr-tools" role="toolbar" aria-label="Print tools">
             {TOOLS.map((t) => (
               <button
@@ -194,7 +166,6 @@ export function GhostReprint({
             ))}
           </div>
         </div>
-
         {autoPlay ? (
           <span ref={cursorRef} className="gr-cursor" aria-hidden="true">
             <svg viewBox="0 0 24 32" fill="none">
