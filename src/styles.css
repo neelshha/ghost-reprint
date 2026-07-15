@@ -1,9 +1,13 @@
 .gr-root {
   --gr-fg: currentColor;
   --gr-muted: color-mix(in srgb, currentColor 42%, transparent);
-  --gr-line: color-mix(in srgb, currentColor 18%, transparent);
+  --gr-line: color-mix(in srgb, currentColor 16%, transparent);
+  --gr-ink-c: oklch(0.56 0.14 230);
+  --gr-ink-m: oklch(0.58 0.17 18);
+  --gr-ink-k: currentColor;
+  --gr-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
-  width: min(100%, 16rem);
+  width: min(100%, 19rem);
   margin: 0 auto;
   color: var(--gr-fg);
   font-family: inherit;
@@ -24,22 +28,72 @@
   pointer-events: none;
 }
 
-.gr-live {
+.gr-plate {
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1.1rem;
+  padding: 2rem 1.35rem 1.15rem;
+  border: 1px solid var(--gr-line);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, currentColor 3%, transparent),
+      transparent 38%
+    ),
+    color-mix(in srgb, currentColor 2%, transparent);
+  transition: transform 180ms var(--gr-ease);
+}
+
+.gr-plate[data-press="true"] {
+  transform: scale(0.985);
+}
+
+.gr-reg {
+  position: absolute;
+  width: 0.55rem;
+  height: 0.55rem;
+  opacity: 0.55;
+}
+
+.gr-reg-tl {
+  top: 0.55rem;
+  left: 0.55rem;
+  border-top: 1px solid var(--gr-line);
+  border-left: 1px solid var(--gr-line);
+}
+
+.gr-reg-tr {
+  top: 0.55rem;
+  right: 0.55rem;
+  border-top: 1px solid var(--gr-line);
+  border-right: 1px solid var(--gr-line);
+}
+
+.gr-reg-bl {
+  bottom: 0.55rem;
+  left: 0.55rem;
+  border-bottom: 1px solid var(--gr-line);
+  border-left: 1px solid var(--gr-line);
+}
+
+.gr-reg-br {
+  right: 0.55rem;
+  bottom: 0.55rem;
+  border-right: 1px solid var(--gr-line);
+  border-bottom: 1px solid var(--gr-line);
 }
 
 .gr-imprint {
-  display: block;
-  min-height: 1.35em;
-  font-size: 1.05rem;
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 1.35;
+  margin: 0;
+  min-height: 1.1em;
+  font-size: clamp(1.35rem, 4vw, 1.65rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
   color: var(--gr-fg);
   text-align: center;
 }
@@ -90,27 +144,186 @@
   outline-offset: 2px;
 }
 
-/* Ghost stamp — active word only, not the full control panel */
-.gr-ghosts .gr-imprint {
+.gr-stamp {
   position: absolute;
-  left: 50%;
-  top: 0;
-  width: max-content;
-  max-width: 100%;
-  margin: 0;
-  transform: translateX(-50%);
-  opacity: 0.34;
-  animation: gr-ghost-fade 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.35rem 1.15rem;
 }
 
-@keyframes gr-ghost-fade {
+.gr-stamp-layer {
+  grid-area: 1 / 1;
+  margin: 0;
+  font-size: clamp(1.35rem, 4vw, 1.65rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  opacity: 0;
+  mix-blend-mode: multiply;
+  will-change: transform, opacity;
+}
+
+.gr-stamp-c {
+  color: var(--gr-ink-c);
+  animation: gr-drift-c 2.6s var(--gr-ease) forwards;
+}
+
+.gr-stamp-m {
+  color: var(--gr-ink-m);
+  animation: gr-drift-m 2.6s var(--gr-ease) forwards;
+}
+
+.gr-stamp-k {
+  color: var(--gr-ink-k);
+  mix-blend-mode: normal;
+  animation: gr-drift-k 2.6s var(--gr-ease) forwards;
+}
+
+.gr-stamp[data-tool="draft"] .gr-stamp-c {
+  animation-name: gr-drift-draft-c;
+}
+
+.gr-stamp[data-tool="draft"] .gr-stamp-m {
+  animation-name: gr-drift-draft-m;
+}
+
+.gr-stamp[data-tool="draft"] .gr-stamp-k {
+  animation-name: gr-drift-draft-k;
+}
+
+.gr-stamp[data-tool="align"] .gr-stamp-c {
+  animation-name: gr-drift-align-c;
+}
+
+.gr-stamp[data-tool="align"] .gr-stamp-m {
+  animation-name: gr-drift-align-m;
+}
+
+.gr-stamp[data-tool="align"] .gr-stamp-k {
+  animation-name: gr-drift-align-k;
+}
+
+.gr-stamp[data-tool="export"] .gr-stamp-c {
+  animation-name: gr-drift-export-c;
+}
+
+.gr-stamp[data-tool="export"] .gr-stamp-m {
+  animation-name: gr-drift-export-m;
+}
+
+.gr-stamp[data-tool="export"] .gr-stamp-k {
+  animation-name: gr-drift-export-k;
+}
+
+@keyframes gr-drift-draft-c {
   0% {
-    opacity: 0.34;
-    transform: translateX(-50%) translate(3px, 2px);
+    opacity: 0.78;
+    transform: translate(-7px, -2px);
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) translate(10px, 7px);
+    transform: translate(-18px, -10px);
+  }
+}
+
+@keyframes gr-drift-draft-m {
+  0% {
+    opacity: 0.72;
+    transform: translate(6px, 1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(16px, 8px);
+  }
+}
+
+@keyframes gr-drift-draft-k {
+  0% {
+    opacity: 0.62;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(8px, 6px);
+  }
+}
+
+@keyframes gr-drift-align-c {
+  0% {
+    opacity: 0.7;
+    transform: translate(-9px, 3px);
+  }
+  45% {
+    opacity: 0.58;
+    transform: translate(-3px, 1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes gr-drift-align-m {
+  0% {
+    opacity: 0.66;
+    transform: translate(8px, -2px);
+  }
+  45% {
+    opacity: 0.54;
+    transform: translate(2px, -1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes gr-drift-align-k {
+  0% {
+    opacity: 0.58;
+    transform: translate(0, 4px);
+  }
+  45% {
+    opacity: 0.48;
+    transform: translate(0, 1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes gr-drift-export-c {
+  0% {
+    opacity: 0.82;
+    transform: translate(-5px, 2px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-14px, 14px);
+  }
+}
+
+@keyframes gr-drift-export-m {
+  0% {
+    opacity: 0.76;
+    transform: translate(4px, -1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(12px, 16px);
+  }
+}
+
+@keyframes gr-drift-export-k {
+  0% {
+    opacity: 0.68;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(6px, 18px);
   }
 }
 
@@ -141,9 +354,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gr-ghosts .gr-imprint {
-    animation: none;
-    opacity: 0.18;
+  .gr-plate {
+    transition: none;
+  }
+
+  .gr-stamp-layer {
+    animation: none !important;
+    opacity: 0.22;
   }
 
   .gr-cursor {
@@ -152,5 +369,15 @@
 
   .gr-tool {
     transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .gr-stamp-layer {
+    mix-blend-mode: screen;
+  }
+
+  .gr-stamp-k {
+    mix-blend-mode: normal;
   }
 }
