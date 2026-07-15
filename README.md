@@ -1,6 +1,6 @@
 # Ghost Reprint
 
-Interactive UI that leaves a fading afterimage. Click a tool to press an imprint; ghosts drift and dissolve. Memory as interface material.
+A confirmation modal that leaves a colored afterimage. **Delete** reprints a red ripple; **Keep** reprints a constructive green one.
 
 ## Install
 
@@ -21,8 +21,8 @@ export function Demo() {
 
 | Prop | Default | Description |
 |------|---------|-------------|
-| `autoPlay` | `false` | Loop a cursor + stamp demo (gallery cards) |
-| `autoPlayDuration` | `4200` | Approx. length of one tool-cycle pass |
+| `autoPlay` | `false` | Loop a cursor + ripple demo (gallery cards) |
+| `autoPlayDuration` | `4200` | Approx. length of one Keep → Delete pass |
 | `className` | — | Extra class on the root |
 
 ## License

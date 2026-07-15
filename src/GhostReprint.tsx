@@ -1,23 +1,18 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const TOOLS = [
-  { id: "draft", label: "Draft", copy: "Compose." },
-  { id: "align", label: "Align", copy: "Register." },
-  { id: "export", label: "Export", copy: "Press." },
+const ACTIONS = [
+  { id: "keep", label: "Keep", tone: "constructive" as const },
+  { id: "delete", label: "Delete", tone: "destructive" as const },
 ] as const;
 
-type ToolId = (typeof TOOLS)[number]["id"];
+type ActionId = (typeof ACTIONS)[number]["id"];
+type Tone = (typeof ACTIONS)[number]["tone"];
 
 export type GhostReprintProps = {
   className?: string;
-  /** Demo loop for gallery cards — cursor + ghost stamps. */
+  /** Demo loop for gallery cards — cursor + toned ripples. */
   autoPlay?: boolean;
   autoPlayDuration?: number;
 };
@@ -29,13 +24,11 @@ export function GhostReprint({
 }: GhostReprintProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const bedRef = useRef<HTMLDivElement>(null);
-  const liveRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const ghostsRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const reduced = useRef(false);
-  const [active, setActive] = useState<ToolId>("draft");
-
-  const tool = TOOLS.find((t) => t.id === active) ?? TOOLS[0];
+  const [flash, setFlash] = useState<Tone | null>(null);
 
   const setCursor = useCallback((visible: boolean, x = 0, y = 0) => {
     const root = rootRef.current;
@@ -45,27 +38,36 @@ export function GhostReprint({
     if (visible) cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }, []);
 
-  const printGhost = useCallback(() => {
-    const live = liveRef.current;
+  const printGhost = useCallback((tone: Tone) => {
+    const dialog = dialogRef.current;
     const ghosts = ghostsRef.current;
-    if (!live || !ghosts || reduced.current) return;
+    if (!dialog || !ghosts || reduced.current) return;
 
-    const stamp = live.cloneNode(true) as HTMLElement;
+    const stamp = dialog.cloneNode(true) as HTMLElement;
     stamp.setAttribute("aria-hidden", "true");
+    stamp.removeAttribute("role");
+    stamp.removeAttribute("aria-labelledby");
+    stamp.removeAttribute("aria-describedby");
+    stamp.dataset.tone = tone;
+    stamp.classList.add("gr-ghost");
     stamp.querySelectorAll("button").forEach((btn) => {
       btn.setAttribute("tabindex", "-1");
       btn.setAttribute("disabled", "true");
     });
     ghosts.appendChild(stamp);
-    window.setTimeout(() => stamp.remove(), 2500);
+    window.setTimeout(() => stamp.remove(), 1400);
   }, []);
 
   const pick = useCallback(
-    (id: ToolId, withPrint = true) => {
-      setActive(id);
-      if (withPrint) {
-        requestAnimationFrame(() => printGhost());
-      }
+    (id: ActionId, withPrint = true) => {
+      const action = ACTIONS.find((a) => a.id === id);
+      if (!action) return;
+
+      if (!withPrint) return;
+
+      setFlash(action.tone);
+      window.setTimeout(() => setFlash(null), 420);
+      requestAnimationFrame(() => printGhost(action.tone));
     },
     [printGhost],
   );
@@ -73,6 +75,7 @@ export function GhostReprint({
   const clearGhosts = useCallback(() => {
     const ghosts = ghostsRef.current;
     if (ghosts) ghosts.replaceChildren();
+    setFlash(null);
     setCursor(false);
   }, [setCursor]);
 
@@ -94,10 +97,10 @@ export function GhostReprint({
         timers.add(id);
       });
 
-    const moveCursorToTool = async (id: ToolId) => {
+    const moveCursorToAction = async (id: ActionId) => {
       const bed = bedRef.current;
-      const btn = liveRef.current?.querySelector<HTMLElement>(
-        `[data-tool="${id}"]`,
+      const btn = dialogRef.current?.querySelector<HTMLElement>(
+        `[data-action="${id}"]`,
       );
       if (!bed || !btn) return;
       const bedBox = bed.getBoundingClientRect();
@@ -111,20 +114,19 @@ export function GhostReprint({
     const run = async () => {
       while (!cancelled) {
         clearGhosts();
-        setActive("draft");
-        await wait(320);
+        await wait(380);
         if (cancelled) break;
 
-        for (const t of TOOLS) {
+        for (const action of ACTIONS) {
           if (cancelled) break;
-          await moveCursorToTool(t.id);
+          await moveCursorToAction(action.id);
           if (cancelled) break;
-          pick(t.id, true);
-          await wait(Math.max(700, autoPlayDuration / 3.1));
+          pick(action.id, true);
+          await wait(Math.max(900, autoPlayDuration / 2.1));
         }
 
         setCursor(false);
-        await wait(1000);
+        await wait(1100);
       }
     };
 
@@ -143,25 +145,37 @@ export function GhostReprint({
       className={["gr-root", className].filter(Boolean).join(" ")}
       data-cursor="false"
       data-autoplay={autoPlay ? "true" : "false"}
+      data-flash={flash ?? undefined}
     >
       <div ref={bedRef} className="gr-bed">
         <div ref={ghostsRef} className="gr-ghosts" aria-hidden="true" />
-        <div ref={liveRef} className="gr-live">
-          <p className="gr-copy">{tool.copy}</p>
-          <div className="gr-tools" role="toolbar" aria-label="Print tools">
-            {TOOLS.map((t) => (
+        <div
+          ref={dialogRef}
+          className="gr-dialog"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="gr-title"
+          aria-describedby="gr-copy"
+        >
+          <h3 id="gr-title" className="gr-title">
+            Discard draft?
+          </h3>
+          <p id="gr-copy" className="gr-copy">
+            Keep a copy, or delete it for good.
+          </p>
+          <div className="gr-actions">
+            {ACTIONS.map((action) => (
               <button
-                key={t.id}
+                key={action.id}
                 type="button"
-                className="gr-tool"
-                data-tool={t.id}
-                data-active={t.id === active ? "true" : "false"}
-                aria-pressed={t.id === active}
+                className="gr-action"
+                data-action={action.id}
+                data-tone={action.tone}
                 onClick={() => {
-                  if (!autoPlay) pick(t.id, true);
+                  if (!autoPlay) pick(action.id, true);
                 }}
               >
-                {t.label}
+                {action.label}
               </button>
             ))}
           </div>
