@@ -2,7 +2,7 @@
 
 :root {
   color-scheme: light dark;
-  --bg: #e8e2d6;
+  --bg: #faf9f7;
   --fg: #1c1915;
 }
 
@@ -10,13 +10,6 @@
   :root {
     --bg: #141210;
     --fg: #ece7de;
-  }
-
-  .gr-root {
-    --gr-ink: #ece7de;
-    --gr-paper: #242019;
-    --gr-rule: color-mix(in srgb, #ece7de 14%, transparent);
-    --gr-accent: #d06a58;
   }
 }
 
@@ -33,7 +26,7 @@ body {
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .demo {

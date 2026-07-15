@@ -5,13 +5,12 @@ import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
 
 const TOOLS = [
-  { id: "draft", label: "Draft", fill: "34%", copy: "Compose a first impression." },
-  { id: "align", label: "Align", fill: "62%", copy: "Lock type to the plate." },
-  { id: "export", label: "Export", fill: "90%", copy: "Press — leave the ghost." },
+  { id: "draft", label: "Draft", copy: "Compose." },
+  { id: "align", label: "Align", copy: "Register." },
+  { id: "export", label: "Export", copy: "Press." },
 ] as const;
 
 type ToolId = (typeof TOOLS)[number]["id"];
@@ -148,44 +147,23 @@ export function GhostReprint({
       <div ref={bedRef} className="gr-bed">
         <div ref={ghostsRef} className="gr-ghosts" aria-hidden="true" />
         <div ref={liveRef} className="gr-live">
-          <div
-            className="gr-plate"
-            style={{ "--gr-fill": tool.fill } as CSSProperties}
-          >
-            <div className="gr-top">
-              <p className="gr-mark">Ghost reprint</p>
-              <div className="gr-lamps" aria-hidden="true">
-                {TOOLS.map((t) => (
-                  <span
-                    key={t.id}
-                    className="gr-lamp"
-                    data-on={t.id === active ? "true" : "false"}
-                  />
-                ))}
-              </div>
-            </div>
-            <h3 className="gr-title">Press, then leave.</h3>
-            <p className="gr-copy">{tool.copy}</p>
-            <div className="gr-tools" role="toolbar" aria-label="Print tools">
-              {TOOLS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="gr-tool"
-                  data-tool={t.id}
-                  data-active={t.id === active ? "true" : "false"}
-                  aria-pressed={t.id === active}
-                  onClick={() => {
-                    if (!autoPlay) pick(t.id, true);
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            <div className="gr-meter" aria-hidden="true">
-              <span />
-            </div>
+          <p className="gr-copy">{tool.copy}</p>
+          <div className="gr-tools" role="toolbar" aria-label="Print tools">
+            {TOOLS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className="gr-tool"
+                data-tool={t.id}
+                data-active={t.id === active ? "true" : "false"}
+                aria-pressed={t.id === active}
+                onClick={() => {
+                  if (!autoPlay) pick(t.id, true);
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
         </div>
         {autoPlay ? (
