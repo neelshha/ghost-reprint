@@ -1,0 +1,224 @@
+.gr-root {
+  --gr-ink: #1c1915;
+  --gr-paper: #f2eee6;
+  --gr-rule: color-mix(in srgb, var(--gr-ink) 12%, transparent);
+  --gr-accent: #c45c4a;
+  --gr-muted: color-mix(in srgb, var(--gr-ink) 58%, transparent);
+  position: relative;
+  width: min(100%, 22rem);
+  margin: 0 auto;
+  color: var(--gr-ink);
+  font-family: inherit;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.gr-bed {
+  position: relative;
+  isolation: isolate;
+}
+
+.gr-ghosts {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.gr-live {
+  position: relative;
+  z-index: 1;
+}
+
+.gr-plate {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--gr-rule);
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 40%, transparent),
+      transparent 42%
+    ),
+    var(--gr-paper);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 55%, transparent) inset,
+    0 14px 32px color-mix(in srgb, #120e0a 12%, transparent);
+}
+
+.gr-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.gr-mark {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gr-muted);
+}
+
+.gr-lamps {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.gr-lamp {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--gr-rule);
+}
+
+.gr-lamp[data-on="true"] {
+  background: var(--gr-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gr-accent) 18%, transparent);
+}
+
+.gr-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+.gr-copy {
+  margin: 0 0 1.1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--gr-muted);
+}
+
+.gr-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.gr-tool {
+  appearance: none;
+  margin: 0;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--gr-rule);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gr-paper) 70%, #fff);
+  color: var(--gr-ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
+}
+
+.gr-tool:hover {
+  background: color-mix(in srgb, var(--gr-paper) 40%, #fff);
+}
+
+.gr-tool:active {
+  transform: scale(0.97);
+}
+
+.gr-tool[data-active="true"] {
+  border-color: color-mix(in srgb, var(--gr-ink) 55%, transparent);
+  background: var(--gr-ink);
+  color: var(--gr-paper);
+}
+
+.gr-meter {
+  margin-top: 1rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: var(--gr-rule);
+  overflow: hidden;
+}
+
+.gr-meter > span {
+  display: block;
+  height: 100%;
+  width: var(--gr-fill, 34%);
+  border-radius: inherit;
+  background: var(--gr-accent);
+  transition: width 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Ghost stamp — DOM clone of .gr-live (contains .gr-plate) */
+.gr-ghosts .gr-live {
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+  filter: grayscale(0.12);
+  transform: translate(5px, 4px);
+  animation: gr-ghost-fade 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.gr-ghosts .gr-plate {
+  box-shadow: none;
+  height: 100%;
+}
+
+@keyframes gr-ghost-fade {
+  0% {
+    opacity: 0.42;
+    transform: translate(5px, 4px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(14px, 11px) scale(1.015);
+  }
+}
+
+.gr-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 18px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.45));
+  will-change: transform, opacity;
+  transition: opacity 160ms ease;
+}
+
+.gr-root[data-cursor="true"] .gr-cursor {
+  opacity: 1;
+}
+
+.gr-cursor svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-ghosts .gr-live {
+    animation: none;
+    opacity: 0.2;
+  }
+
+  .gr-cursor {
+    display: none;
+  }
+
+  .gr-tool,
+  .gr-meter > span {
+    transition: none;
+  }
+}

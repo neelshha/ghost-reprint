@@ -1,0 +1,58 @@
+{
+  "name": "@neelshha/ghost-reprint",
+  "version": "1.0.0",
+  "description": "Interactive UI that leaves a fading afterimage — ghost reprint for React",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "./src/styles.css"
+  ],
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./styles.css": "./src/styles.css"
+  },
+  "files": [
+    "src/GhostReprint.tsx",
+    "src/index.ts",
+    "src/styles.css"
+  ],
+  "keywords": [
+    "react",
+    "interaction",
+    "afterimage",
+    "design-engineering",
+    "nextjs",
+    "animation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neelshha/ghost-reprint.git"
+  },
+  "homepage": "https://github.com/neelshha/ghost-reprint#readme",
+  "bugs": {
+    "url": "https://github.com/neelshha/ghost-reprint/issues"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3"
+  }
+}
