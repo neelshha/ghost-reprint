@@ -8,9 +8,9 @@ import {
 } from "react";
 
 const TOOLS = [
-  { id: "draft", label: "Draft", copy: "Compose." },
-  { id: "align", label: "Align", copy: "Register." },
-  { id: "export", label: "Export", copy: "Press." },
+  { id: "draft", label: "Draft" },
+  { id: "align", label: "Align" },
+  { id: "export", label: "Export" },
 ] as const;
 
 type ToolId = (typeof TOOLS)[number]["id"];
@@ -29,7 +29,7 @@ export function GhostReprint({
 }: GhostReprintProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const bedRef = useRef<HTMLDivElement>(null);
-  const liveRef = useRef<HTMLDivElement>(null);
+  const imprintRef = useRef<HTMLSpanElement>(null);
   const ghostsRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const reduced = useRef(false);
@@ -46,18 +46,14 @@ export function GhostReprint({
   }, []);
 
   const printGhost = useCallback(() => {
-    const live = liveRef.current;
+    const imprint = imprintRef.current;
     const ghosts = ghostsRef.current;
-    if (!live || !ghosts || reduced.current) return;
+    if (!imprint || !ghosts || reduced.current) return;
 
-    const stamp = live.cloneNode(true) as HTMLElement;
+    const stamp = imprint.cloneNode(true) as HTMLElement;
     stamp.setAttribute("aria-hidden", "true");
-    stamp.querySelectorAll("button").forEach((btn) => {
-      btn.setAttribute("tabindex", "-1");
-      btn.setAttribute("disabled", "true");
-    });
     ghosts.appendChild(stamp);
-    window.setTimeout(() => stamp.remove(), 2500);
+    window.setTimeout(() => stamp.remove(), 2400);
   }, []);
 
   const pick = useCallback(
@@ -96,9 +92,7 @@ export function GhostReprint({
 
     const moveCursorToTool = async (id: ToolId) => {
       const bed = bedRef.current;
-      const btn = liveRef.current?.querySelector<HTMLElement>(
-        `[data-tool="${id}"]`,
-      );
+      const btn = bed?.querySelector<HTMLElement>(`[data-tool="${id}"]`);
       if (!bed || !btn) return;
       const bedBox = bed.getBoundingClientRect();
       const btnBox = btn.getBoundingClientRect();
@@ -146,8 +140,10 @@ export function GhostReprint({
     >
       <div ref={bedRef} className="gr-bed">
         <div ref={ghostsRef} className="gr-ghosts" aria-hidden="true" />
-        <div ref={liveRef} className="gr-live">
-          <p className="gr-copy">{tool.copy}</p>
+        <div className="gr-live">
+          <span ref={imprintRef} className="gr-imprint">
+            {tool.label}
+          </span>
           <div className="gr-tools" role="toolbar" aria-label="Print tools">
             {TOOLS.map((t) => (
               <button
